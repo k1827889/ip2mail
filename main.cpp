@@ -221,7 +221,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     base64(pass, buf, strlen(buf));
     sprintf(buf, "%s\r\n", pass);
     send(sockfd, buf, strlen(buf), 0);
-    printf("%s\n", buf);
+    printf("%s", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
     printf("%s", rbuf);
