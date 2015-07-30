@@ -10,8 +10,10 @@ Send IPs of your raspberry pi to a specific email address automatically.
 3. sudo vim /etc/rc.local, and add ```/etc/init.d/ip2mail``` to a proper position
 
 #### Wanna display these info in serial?
-4. sudo vim /etc/rc.local, and append ``` > ttyAMA0 ``` to ```/etc/init.d/ip2mail```
-   And it goes like ```/etc/init.d/ip2mail > /dev/ttyAMA0```
+sudo vim /etc/rc.local, and append ``` > ttyAMA0 ``` to ```/etc/init.d/ip2mail```
+   
+It goes like ```/etc/init.d/ip2mail > /dev/ttyAMA0```
+
 You can replace 'ttyAMA0' with the serial port you like (If you're using another serial port)
 
 ## How to uninstall
