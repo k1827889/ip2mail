@@ -72,6 +72,11 @@ void sendmail(const char * username, const char * password, const char * email, 
  */
 void get_all_ip(void);
 
+/**
+ *  @brief 输出启动时间
+ */
+void uptime(void);
+
 void base64(char * dbuf, char * buf128, size_t len) {
     struct data6 *ddd = NULL;
     int i = 0;
@@ -175,16 +180,17 @@ void sendmail(const char * username, const char * password, const char * email, 
     addr.sin_port = htons(25);
     addr.sin_addr.s_addr = inet_addr(nslookup1(smtp).c_str());
 
-    
     int sockfd = open_socket((struct sockaddr *)&addr);
     memset(rbuf,0,4096);
     while(recv(sockfd, rbuf, 4096, 0) == 0)
     {
+        uptime();
         printf("reconnect...\n");
         sleep(2);
         sockfd = open_socket((struct sockaddr *)&addr);
         memset(rbuf,0,4096);
     }
+    uptime();
     printf("%s", rbuf);
     
     // EHLO
@@ -193,15 +199,18 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // AUTH LOGIN
     memset(buf, 0, 4096);
     sprintf(buf, "AUTH LOGIN\r\n");
     send(sockfd, buf, strlen(buf), 0);
+    uptime();
     printf("%s", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // USER
@@ -211,9 +220,11 @@ void sendmail(const char * username, const char * password, const char * email, 
     base64(login, buf, strlen(buf));
     sprintf(buf, "%s\r\n", login);
     send(sockfd, buf, strlen(buf), 0);
+    uptime();
     printf("%s", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // PASSWORD
@@ -221,9 +232,11 @@ void sendmail(const char * username, const char * password, const char * email, 
     base64(pass, buf, strlen(buf));
     sprintf(buf, "%s\r\n", pass);
     send(sockfd, buf, strlen(buf), 0);
+    uptime();
     printf("%s", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // MAIL FROM
@@ -232,6 +245,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // RCPT TO
@@ -240,6 +254,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // DATA
@@ -248,6 +263,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // TO
@@ -272,6 +288,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     
     // QUIT
@@ -280,6 +297,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
+    uptime();
     printf("%s", rbuf);
     return;
 }
@@ -297,6 +315,14 @@ void get_all_ip(void) {
         address = address->ifa_next;
     }
     freeifaddrs(interfaces);
+}
+
+void uptime(void) {
+    FILE * fp = fopen("/proc/stat", "r");
+    int usr, nice, sys, idle, io, irq, sirq;
+    fscanf(fp, "cpu %d %d %d %d %d %d %d", &usr, &nice, &sys, &idle, &io, &irq, &sirq);
+    printf("[%12.6lf] ",((usr + nice + sys + idle + io + irq + sirq)/100.0));
+    fclose(fp);
 }
 
 int main(int argc, const char * argv[]) {
