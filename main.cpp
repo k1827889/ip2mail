@@ -6,14 +6,17 @@
 //  Copyright (c) 2015 0xBBC. All rights reserved.
 //
 
-#include <iostream>
-#include <ifaddrs.h>
-#include <netdb.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <iostream>
+#include <netdb.h>
 #include <map>
-#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -152,7 +155,7 @@ std::string nslookup1(const char * domain_name) {
             }
             
             char hbuf[NI_MAXHOST];
-            if (!getnameinfo(res->ai_addr, res->ai_addr->sa_len, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST | NI_NUMERICSERV)) {
+            if (!getnameinfo(res->ai_addr, sizeof(struct sockaddr_storage), hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST | NI_NUMERICSERV)) {
                 freeaddrinfo(res0);
                 return std::string(hbuf);
             }
@@ -163,10 +166,10 @@ std::string nslookup1(const char * domain_name) {
 
 void sendmail(const char * username, const char * password, const char * email, const char * smtp,const char * subject, const char * body) {
     struct sockaddr_in addr = { 0 };
-    char buf[4096]  = { NULL };
-    char rbuf[4096] = { NULL };
-    char login[128] = { NULL };
-    char pass[128]  = { NULL };
+    char buf[4096]  = { 0 };
+    char rbuf[4096] = { 0 };
+    char login[128] = { 0 };
+    char pass[128]  = { 0 };
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(25);
@@ -182,7 +185,7 @@ void sendmail(const char * username, const char * password, const char * email, 
         sockfd = open_socket((struct sockaddr *)&addr);
         memset(rbuf,0,4096);
     }
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // EHLO
     memset(buf, 0, 4096);
@@ -190,16 +193,16 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // AUTH LOGIN
     memset(buf, 0, 4096);
     sprintf(buf, "AUTH LOGIN\r\n");
     send(sockfd, buf, strlen(buf), 0);
-    printf("%s\n", buf);
+    printf("%s", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // USER
     memset(buf, 0, 4096);
@@ -208,10 +211,10 @@ void sendmail(const char * username, const char * password, const char * email, 
     base64(login, buf, strlen(buf));
     sprintf(buf, "%s\r\n", login);
     send(sockfd, buf, strlen(buf), 0);
-    printf("%s\n", buf);
+    printf("%s", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // PASSWORD
     sprintf(buf, "%s",password);
@@ -221,7 +224,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     printf("%s\n", buf);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // MAIL FROM
     memset(buf, 0, 4096);
@@ -229,7 +232,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // RCPT TO
     memset(buf, 0, 4096);
@@ -237,7 +240,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // DATA
     memset(buf, 0, 4096);
@@ -245,7 +248,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // TO
     memset(buf, 0, 4096);
@@ -269,7 +272,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     
     // QUIT
     memset(buf, 0, 4096);
@@ -277,7 +280,7 @@ void sendmail(const char * username, const char * password, const char * email, 
     send(sockfd, buf, strlen(buf), 0);
     memset(rbuf, 0, 4096);
     recv(sockfd, rbuf, 4096, 0);
-    printf("%s\n", rbuf);
+    printf("%s", rbuf);
     return;
 }
 
@@ -299,16 +302,16 @@ void get_all_ip(void) {
 int main(int argc, const char * argv[]) {
     get_all_ip();
     
-    char ip_data[4096]  = { NULL };
+    char ip_data[4096]  = { 0 };
     memset(ip_data, 0, 4096);
-    for (auto iter = iptable.begin(); iter != iptable.end(); iter++) {
+    for (map<string, string>::iterator iter = iptable.begin(); iter != iptable.end(); iter++) {        
         strcat(ip_data, iter->first.c_str());
         strcat(ip_data, ":");
         strcat(ip_data, iter->second.c_str());
         strcat(ip_data, "\n");
     }
     
-    char date[256]  = { NULL };
+    char date[256]  = { 0 };
     memset(date, 0, 256);
     time_t result = time(NULL);
     if(result != -1) sprintf(date, "IP address of my Raspberry Pi - %s", asctime(localtime(&result)));
